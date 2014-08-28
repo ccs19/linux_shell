@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define MAXARGS 		32
 #define MAX_INPUT_CHARS	MAXARGS*10	//conservative assumption 10 chars per argument
@@ -46,6 +49,8 @@ int newParam_t(Param_t*);
 
 /* Frees member memory for a Param_t (automatic memory) structure */
 void freeParam_t(Param_t*);
+
+int execInput(Param_t*, char*);
 
 #endif	//MYSHELL_H
 

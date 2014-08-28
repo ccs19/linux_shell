@@ -26,6 +26,9 @@ void shellBegin(){
 		newParam_t(&inputInfo);
 		tokenizeInput(inputString, &inputInfo);  
 
+		//Testing execution of user input.
+		execInput(&inputInfo, inputString);
+
 		if(debugMode)
 			printParams(&inputInfo);
 
@@ -115,3 +118,31 @@ void printParams(Param_t* param){
 		printf("ArgumentVector[%2d]: [%s]\n", i, param->argumentVector[i]);
 	puts("");
 }
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  execInput
+ *  Description: Executes user input
+ * =====================================================================================
+ */
+int execInput(Param_t* param, char *str){
+	pid_t child_pid, monitor;
+	int child_stat;
+	child_pid = fork();
+
+	if(child_pid == 0){
+		execvp(param->argumentVector[0], param->argumentVector);
+		printf("Invalid command\n");
+		exit(0);
+	}
+	else{
+
+		do{
+			monitor = wait(&child_stat);
+		}while(monitor != child_pid);
+	}
+
+	return child_stat;
+
+}/* -----  end of function openFile  ----- */
