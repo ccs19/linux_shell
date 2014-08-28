@@ -32,67 +32,41 @@ void shellBegin(){
 		if(debugMode)
 			printParams(&inputInfo);
 
-		//maybe call function here? - Function to call will be at argumentVector[0]
-		freeParam_t(&inputInfo); 
 	}
 }
 
 void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are last in command line then they have an inherent newline character!
 	char* token; 	//Could include a function that takes the string to check for newline. Rather ugly solution.
-	int file_found; //Check for valid input/output redirect
 
 	token = strtok(str, "\n\t\r  ");
 	do{
-		file_found = 0;
-		switch(*token){
 
 
-			case '>':
-				//Need to search for next characters
-				while(file_found == 0){
-					token = strtok(NULL, " "); //Check for space characters. Need to protect against newlines and other types of special characters
-												//This needs to go into its own function.
-					if( token[0] != ' ') file_found = 1;
-					printf("%c \n", token[0]);
-				}
-				inputInfo->outputRedirect = token;
+		if(token != NULL){
+			switch(*token){
 
-				//if(debugMode)
-					//printf("Saved: %s\n", token+sizeof(char));
-				break;
+				case '>':
+					if(checkValidRedirect(inputInfo, token, 1) == 0)
+						printf("Invalid output redirect\n");
+					break;
 
-			case '<':
+				case '<':
+					if(checkValidRedirect(inputInfo, token, 0) == 0)
+						printf("Invalid input redirect\n");
+					break;
 
-				while(file_found == 0){
-						token = strtok(NULL, " "); //Check for space characters. Need to protect against newlines and other types of special characters
-													//This needs to go into its own function.
-						if( token[0] != ' ') file_found = 1;
-				}
+				case '&':
+					inputInfo->background = 1;
+					break;
 
-				inputInfo->inputRedirect = token;
-
-				//if(debugMode)
-					//printf("Saved: %s\n", token+sizeof(char));
-				break;
-
-			case '&':
-				inputInfo->background = 1; 				//true
-				//if(debugMode)
-					//printf("Background: true\n");
-				break;
-
-			default:
-				//if(inputInfo->argumentCount == 0){		//if we reach the default && it's the first argument, then it must be the system command or empty string
+				default:
+					if(token == NULL) break;
 					inputInfo->argumentVector[inputInfo->argumentCount] = token;
-					//strcpy(inputInfo->argumentVector[inputInfo->argumentCount], token);
 					inputInfo->argumentCount++;
-
-					//if(debugMode)
-						//printf("Saved: %s\n", token);
-				//}
-				break;
+					break;
+			}
 		}
-		token  = strtok(NULL, "\n\t\r ");
+		token = strtok(NULL, "\n\t\r  ");
 	}while(token != NULL); 
 }
 
@@ -107,12 +81,7 @@ int newParam_t(Param_t* newStruct){
 	return 1; //allocation success
 }
 
-void freeParam_t(Param_t* toFree){
-	//for(int i = 0; i < toFree->argumentCount; i++)
-		//free(toFree->argumentVector[i]);
-	//free(toFree->inputRedirect);
-	//free(toFree->outputRedirect);
-}
+
 
 void printParams(Param_t* param){
 	int i; 
@@ -151,7 +120,6 @@ int execInput(Param_t* param, char *str){
 		exit(0);
 	}
 	else{
-
 		do{
 			monitor = wait(&child_stat);
 		}while(monitor != child_pid);
@@ -160,3 +128,30 @@ int execInput(Param_t* param, char *str){
 	return child_stat;
 
 }/* -----  end of function openFile  ----- */
+
+
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: checkValidRedirect
+ *  Description: Checks for valid re-direction. If failed, returns 0, else 1
+ *  		int option:
+ *  		option = 0 for inputRedirect
+ *  		option = 1 for outputRedirect
+ * =====================================================================================
+ */
+int checkValidRedirect(Param_t* param, char* token, int option){
+	while(1){
+		token = strtok(NULL, " \n\r");
+		if(token == NULL) return 0;
+		else if(token[0] != ' '){ //If not NULL, assume valid string
+				if(option == 0) param->inputRedirect = token;
+				else if(option == 1) param->outputRedirect = token;
+				return 1;
+		}
+
+
+	}
+}/* -----  end of function checkValidRedirect  ----- */
+

@@ -50,7 +50,11 @@ int newParam_t(Param_t*);
 /* Frees member memory for a Param_t (automatic memory) structure */
 void freeParam_t(Param_t*);
 
+/*Executes user input */
 int execInput(Param_t*, char*);
+
+/*Checks for valid input of user re-directs */
+int checkValidRedirect(Param_t* , char*, int);
 
 #endif	//MYSHELL_H
 
