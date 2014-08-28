@@ -1,5 +1,27 @@
+/*
+ * =====================================================================================
+ *
+ *	Authors: Christopher Schneider, Branden Sherrell
+ *	File Name: myshell.c
+ *	Assignment Number: 1
+ *
+ *	Description: Main code for a linux shell.
+ * =====================================================================================
+ */
+
+
+
 #include "myshell.h"
 
+
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: main
+ *  Description:
+ * =====================================================================================
+ */
 int main(int argc, char** argv){
 	if(argc > 1){	
 		if(strncmp(argv[1], "-Debug", sizeof("-Debug")-1) == 0){	//sizeof-1 to neglect null-char from const string and /n from stdin
@@ -10,8 +32,16 @@ int main(int argc, char** argv){
 
 	shellBegin();
 	//ensure child processes are closed here??
-}
+}/* -----  end of function main  ----- */
 
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: shellBegin
+ *  Description:
+ * =====================================================================================
+ */
 void shellBegin(){
 	char inputString[MAX_INPUT_CHARS];	//temp location to hold input string 
 	Param_t inputInfo; 
@@ -33,8 +63,16 @@ void shellBegin(){
 			printParams(&inputInfo);
 
 	}
-}
+}/* -----  end of function shellBegin  ----- */
 
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: tokenizeInput
+ *  Description:
+ * =====================================================================================
+ */
 void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are last in command line then they have an inherent newline character!
 	char* token; 	//Could include a function that takes the string to check for newline. Rather ugly solution.
 
@@ -68,8 +106,16 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 		}
 		token = strtok(NULL, "\n\t\r  ");
 	}while(token != NULL); 
-}
+}/* -----  end of function tokenizeInput  ----- */
 
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: newParam_t
+ *  Description:
+ * =====================================================================================
+ */
 int newParam_t(Param_t* newStruct){
 	newStruct->inputRedirect = NULL;			//make sure success or return 0
 	newStruct->outputRedirect = NULL; 
@@ -79,10 +125,18 @@ int newParam_t(Param_t* newStruct){
 		newStruct->argumentVector[i] = NULL; 	//argument vector char* content allocating is left for when we populate it
 
 	return 1; //allocation success
-}
+}/* -----  end of function newParam_t  ----- */
 
 
 
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: printParams
+ *  Description:
+ * =====================================================================================
+ */
 void printParams(Param_t* param){
 	int i; 
 	printf("\n\nInputRedirect: [%s]\n", 
@@ -94,7 +148,9 @@ void printParams(Param_t* param){
 	for(i = 0; i < param->argumentCount; i++)
 		printf("ArgumentVector[%2d]: [%s]\n", i, param->argumentVector[i]);
 	puts("");
-}
+}/* -----  end of function printParams ----- */
+
+
 
 
 /*
@@ -109,10 +165,6 @@ int execInput(Param_t* param, char *str){
 	child_pid = fork();
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
-
-		//debugging line
-		printf("arg0: %s\n arg1: %s\n", param->argumentVector[0], param->argumentVector[1]);
-
 		execvp(param->argumentVector[0], param->argumentVector);
 
 		//Error thrown if invalid command.  Perror allows program executed to throw its own error, if applicable.
@@ -127,7 +179,7 @@ int execInput(Param_t* param, char *str){
 
 	return child_stat;
 
-}/* -----  end of function openFile  ----- */
+}/* -----  end of function execInput  ----- */
 
 
 

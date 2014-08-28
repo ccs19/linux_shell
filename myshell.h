@@ -1,3 +1,18 @@
+/*
+ * =====================================================================================
+ *
+ *	Authors: Christopher Schneider, Branden Sherrell
+ *	File Name: myshell.h
+ *	Assignment Number: 1
+ *
+ *	Description: Header file
+ * =====================================================================================
+ */
+
+
+
+
+
 #ifndef	MYSHELL_H
 #define MYSHELL_H
 
