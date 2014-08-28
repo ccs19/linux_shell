@@ -44,25 +44,19 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 	token = strtok(str, "\n\t\r  ");
 	do{
 		switch(*token){
-			case '-':
-				inputInfo->argumentVector[inputInfo->argumentCount] = malloc(sizeof(char)*strlen(token)); 
-				strcpy(inputInfo->argumentVector[inputInfo->argumentCount], token+sizeof(char));
-				inputInfo->argumentCount++;
-				//if(debugMode)
-					//printf("Saved: %s\n", token+sizeof(char));
-				break;
+
 
 			case '>':
 
-				inputInfo->outputRedirect = malloc(sizeof(char)*(strlen(token)-1));	//see commend below for '<' character
-				strcpy(inputInfo->outputRedirect, token+sizeof(char));				//strtok (above) replaces end-of-token with NULL-char
+				inputInfo->outputRedirect = token;
+
 				//if(debugMode)
 					//printf("Saved: %s\n", token+sizeof(char));
 				break;
 
 			case '<':
-				inputInfo->inputRedirect = malloc(sizeof(char)*(strlen(token)-1));	//token includes symbol, so subtract 1
-				strcpy(inputInfo->inputRedirect, token+sizeof(char));				//and here start after symbol position
+				inputInfo->inputRedirect = token;
+
 				//if(debugMode)
 					//printf("Saved: %s\n", token+sizeof(char));
 				break;
@@ -74,14 +68,14 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 				break;
 
 			default:
-				if(inputInfo->argumentCount == 0){		//if we reach the default && it's the first argument, then it must be the system command or empty string
-					inputInfo->argumentVector[inputInfo->argumentCount] = malloc(sizeof(char)*strlen(token)); 
-					strcpy(inputInfo->argumentVector[inputInfo->argumentCount], token);
+				//if(inputInfo->argumentCount == 0){		//if we reach the default && it's the first argument, then it must be the system command or empty string
+					inputInfo->argumentVector[inputInfo->argumentCount] = token;
+					//strcpy(inputInfo->argumentVector[inputInfo->argumentCount], token);
 					inputInfo->argumentCount++;
 
 					//if(debugMode)
 						//printf("Saved: %s\n", token);
-				}
+				//}
 				break;
 		}
 		token  = strtok(NULL, "\n\t\r ");
@@ -100,10 +94,10 @@ int newParam_t(Param_t* newStruct){
 }
 
 void freeParam_t(Param_t* toFree){
-	for(int i = 0; i < toFree->argumentCount; i++)
-		free(toFree->argumentVector[i]);
-	free(toFree->inputRedirect);
-	free(toFree->outputRedirect);
+	//for(int i = 0; i < toFree->argumentCount; i++)
+		//free(toFree->argumentVector[i]);
+	//free(toFree->inputRedirect);
+	//free(toFree->outputRedirect);
 }
 
 void printParams(Param_t* param){
@@ -131,9 +125,15 @@ int execInput(Param_t* param, char *str){
 	int child_stat;
 	child_pid = fork();
 
-	if(child_pid == 0){
+	if(child_pid == 0){ //If child is created successfully, attempt to execute
+
+		//debugging line
+		printf("arg0: %s\n arg1: %s\n", param->argumentVector[0], param->argumentVector[1]);
+
 		execvp(param->argumentVector[0], param->argumentVector);
-		printf("Invalid command\n");
+
+		//Error thrown if invalid command.  Perror allows program executed to throw its own error, if applicable.
+		perror("Invalid input: ");
 		exit(0);
 	}
 	else{
