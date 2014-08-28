@@ -38,16 +38,23 @@ void shellBegin(){
 }
 
 void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are last in command line then they have an inherent newline character!
-	char* token; 									//Could include a function that takes the string to check for newline. Rather ugly solution. 
-	//assuming argumentCount = 0 - set as such in newParam_t()
+	char* token; 	//Could include a function that takes the string to check for newline. Rather ugly solution.
+	int file_found; //Check for valid input/output redirect
 
 	token = strtok(str, "\n\t\r  ");
 	do{
+		file_found = 0;
 		switch(*token){
 
 
 			case '>':
-
+				//Need to search for next characters
+				while(file_found == 0){
+					token = strtok(NULL, " "); //Check for space characters. Need to protect against newlines and other types of special characters
+												//This needs to go into its own function.
+					if( token[0] != ' ') file_found = 1;
+					printf("%c \n", token[0]);
+				}
 				inputInfo->outputRedirect = token;
 
 				//if(debugMode)
@@ -55,6 +62,13 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 				break;
 
 			case '<':
+
+				while(file_found == 0){
+						token = strtok(NULL, " "); //Check for space characters. Need to protect against newlines and other types of special characters
+													//This needs to go into its own function.
+						if( token[0] != ' ') file_found = 1;
+				}
+
 				inputInfo->inputRedirect = token;
 
 				//if(debugMode)
