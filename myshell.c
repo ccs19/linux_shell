@@ -86,7 +86,7 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 
 				case '>':
 					if(checkValidRedirect(inputInfo, token, 1) == 0)
-						printf("Invalid output redirect\n");
+						printf("Invalid output redirect\nSyntax \" > filename \"\n");
 					break;
 
 				case '<':
@@ -196,15 +196,11 @@ int execInput(Param_t* param, char *str){
  */
 int checkValidRedirect(Param_t* param, char* token, int option){
 	while(1){
-		token = strtok(NULL, " \n\r");
+		token++;
 		if(token == NULL) return 0;
-		else if(token[0] != ' '){ //If not NULL, assume valid string
-				if(option == 0) param->inputRedirect = token;
-				else if(option == 1) param->outputRedirect = token;
-				return 1;
-		}
-
-
+			if(option == 0) param->inputRedirect = token;
+			else if(option == 1) param->outputRedirect = token;
+			return 1;
 	}
 }/* -----  end of function checkValidRedirect  ----- */
 
