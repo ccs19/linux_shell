@@ -16,6 +16,7 @@
 
 
 
+
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: main
@@ -173,11 +174,11 @@ int execInput(Param_t* param, char *str){
 	}
 	else{
 		do{
-			monitor = wait(&child_stat);
+			monitor = wait(NULL);
 		}while(monitor != child_pid);
 	}
 
-	return child_stat;
+	return child_stat; // Return not needed
 
 }/* -----  end of function execInput  ----- */
 
@@ -207,3 +208,16 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 	}
 }/* -----  end of function checkValidRedirect  ----- */
 
+
+
+/*Adds user command to buffer*/
+//void addToBuffer(char* c){
+//
+//	command_buffer[numCommands] = malloc(sizeof(char)*(strlen(c)));
+//	if(numCommands < BUFF_SIZE ) numCommands++;
+//
+//}
+
+void initBuffer(){
+
+}

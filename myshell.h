@@ -32,6 +32,11 @@
 			if(debugMode)				\
 				printf("%s", str);	\
 		}
+#define BUFF_SIZE 10 //Number of commands to keep in history
+
+
+
+
 
 /* For boolean clarity */
 typedef short bool;
@@ -49,6 +54,14 @@ struct PARAM{
 	char* argumentVector[MAXARGS];	///array of 
 };
 typedef struct PARAM Param_t; 
+
+
+
+/*Struct for command buffer*/
+typedef struct{
+	int comm_count;
+	char command[BUFF_SIZE];
+}Command_Buffer;
 
 /* Entrance point to the main program */
 void shellBegin();
@@ -70,6 +83,12 @@ int execInput(Param_t*, char*);
 
 /*Checks for valid input of user re-directs */
 int checkValidRedirect(Param_t* , char*, int);
+
+/*Adds user command to buffer*/
+void addToBuffer(char*);
+
+/* Initialize buffer */
+void initBuffer();
 
 #endif	//MYSHELL_H
 
