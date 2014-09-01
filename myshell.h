@@ -66,25 +66,22 @@ typedef struct{
 /* Entrance point to the main program */
 void shellBegin();
 
-/* Debug function to output parameter informtion to stdout when in -Debug mode*/
+/* Debug function to output parameter information to stdout when in -Debug mode*/
 void printParams(Param_t*); 
 
 /* Takes the input string, tokenizes it, and populates a Param_t structure accordingly */
 void tokenizeInput(char*, Param_t*);
 
-/* Allocates member memory for a Param_t (automatic memory) structure */
-int newParam_t(Param_t*);
-
-/* Frees member memory for a Param_t (automatic memory) structure */
-void freeParam_t(Param_t*);
+/* Initializes members of a Param_t structure - no dynamic memory allocation */
+void newParam_t(Param_t*);
 
 /*Executes user input */
 int execInput(Param_t*, char*);
 
-/*Checks for valid input of user re-directs */
+/* Checks for valid input of user re-directs */
 int checkValidRedirect(Param_t* , char*, int);
 
-/*Adds user command to buffer*/
+/* Adds user command to buffer */
 void addToBuffer(char*);
 
 /* Initialize buffer */
