@@ -54,7 +54,7 @@ void shellBegin(){
 			//ensure child processes are stopped before breaking
 			break; 
 		}
-		newParam_t(&inputInfo);
+		initParam_t(&inputInfo);
 		tokenizeInput(inputString, &inputInfo);  
 
 		//Testing execution of user input.
@@ -74,23 +74,21 @@ void shellBegin(){
  *  Description:
  * =====================================================================================
  */
-void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are last in command line then they have an inherent newline character!
-	char* token; 	//Could include a function that takes the string to check for newline. Rather ugly solution.
+void tokenizeInput(char* str, Param_t* inputInfo){	
+	char* token; 
 
 	token = strtok(str, "\n\t\r  ");
 	do{
-
-
 		if(token != NULL){
 			switch(*token){
 
 				case '>':
-					if(checkValidRedirect(inputInfo, token, 1) == 0)
+					if(checkValidRedirect(inputInfo, token, OUTPUT_REDIRECT) == 0)		
 						printf("Invalid output redirect\nSyntax \" > filename \"\n");
 					break;
 
 				case '<':
-					if(checkValidRedirect(inputInfo, token, 0) == 0)
+					if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0)		
 						printf("Invalid input redirect\n");
 					break;
 
@@ -100,7 +98,7 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 
 				default:
 					if(token == NULL) break;
-					inputInfo->argumentVector[inputInfo->argumentCount] = token;
+						inputInfo->argumentVector[inputInfo->argumentCount] = token;
 					inputInfo->argumentCount++;
 					break;
 			}
@@ -111,23 +109,21 @@ void tokenizeInput(char* str, Param_t* inputInfo){	//TODO: if IR, OR, or AV are 
 
 
 
+
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: newParam_t
  *  Description:
  * =====================================================================================
  */
-int newParam_t(Param_t* newStruct){
-	newStruct->inputRedirect = NULL;			//make sure success or return 0
+void initParam_t(Param_t* newStruct){
+	newStruct->inputRedirect = NULL;			
 	newStruct->outputRedirect = NULL; 
 	newStruct->argumentCount = 0;
 	newStruct->background = 0;
-	for(int i = 0; i < MAXARGS; i++)			//optimization potential, set only argumentCount char*'s to NULL - but only MAXARGS exist to begin with
-		newStruct->argumentVector[i] = NULL; 	//argument vector char* content allocating is left for when we populate it
-
-	return 1; //allocation success
-}/* -----  end of function newParam_t  ----- */
-
+	for(int i = 0; i < MAXARGS; i++)			//optimization potential, set only argumentCount char*'s to NULL before setting to 0
+		newStruct->argumentVector[i] = NULL; 	//argument vector char* memory allocating is left for when we populate it this field
+}/* -----  end of function initParam_t  ----- */
 
 
 
@@ -162,7 +158,7 @@ void printParams(Param_t* param){
  */
 int execInput(Param_t* param, char *str){
 	pid_t child_pid, monitor;
-	int child_stat;
+	int child_stat = 0;
 	child_pid = fork();
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
@@ -198,9 +194,9 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 	while(1){
 		token++;
 		if(token == NULL) return 0;
-			if(option == 0) param->inputRedirect = token;
-			else if(option == 1) param->outputRedirect = token;
-			return 1;
+		if(option == INPUT_REDIRECT) param->inputRedirect = token;
+		else if(option == OUTPUT_REDIRECT) param->outputRedirect = token;
+		return 1;
 	}
 }/* -----  end of function checkValidRedirect  ----- */
 
