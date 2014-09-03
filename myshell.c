@@ -13,7 +13,7 @@
 
 #include "myshell.h"
 
-
+FILE* temp = NULL;
 
 
 
@@ -59,6 +59,11 @@ void shellBegin(){
 
 		//Testing execution of user input.
 		execInput(&inputInfo, inputString);
+
+		if(temp != NULL){
+			fclose(temp);
+			temp = NULL;
+		}
 
 		if(debugMode)
 			printParams(&inputInfo);
@@ -159,19 +164,34 @@ void printParams(Param_t* param){
 int execInput(Param_t* param, char *str){
 	pid_t child_pid, monitor;
 	int child_stat = 0;
-	child_pid = fork();
+	FILE* outFile = NULL; 
+
+	child_pid = fork();		//returns new child PID in parent process and 0 for child process
+	if(child_pid < 0){		//fork failure
+		perror("Error");
+		exit(EXIT_FAILURE);
+	}
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
+		if(param->outputRedirect != NULL){
+			outFile = freopen(param->outputRedirect, "w", stdout);
+
+			if(outFile == NULL)	//stream association failed
+				perror("Error");
+		}
+
 		execvp(param->argumentVector[0], param->argumentVector);
+		if(outFile != NULL)	//close only if we associated it to begin with, otherwise this is undefined behavior so the check is required
+			fclose(outFile);
 
 		//Error thrown if invalid command.  Perror allows program executed to throw its own error, if applicable.
-		perror("Invalid input: ");
-		exit(0);
+		perror("Invalid input");
+		exit(EXIT_FAILURE);
 	}
 	else{
 		do{
-			monitor = wait(NULL);
-		}while(monitor != child_pid);
+			monitor = wait(NULL);		//if not null, status information is assigned to the int passed in
+		}while(monitor != child_pid);	//wait() returns the pid of terminated child process
 	}
 
 	return child_stat; // Return not needed
