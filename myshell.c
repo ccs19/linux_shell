@@ -76,31 +76,31 @@ void tokenizeInput(char* str, Param_t* inputInfo){
 	char* token; 
 
 	token = strtok(str, "\n\t\r  ");
+	if(token == NULL)	//string was empty
+		return;
+
 	do{
-		if(token != NULL){
-			switch(*token){
+		switch(*token){
+			case '>':
+				if(checkValidRedirect(inputInfo, token, OUTPUT_REDIRECT) == 0)		
+					printf("Invalid output redirect\nSyntax \" > filename \"\n");
+				break;
 
-				case '>':
-					if(checkValidRedirect(inputInfo, token, OUTPUT_REDIRECT) == 0)		
-						printf("Invalid output redirect\nSyntax \" > filename \"\n");
+			case '<':
+				if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0)		
+				printf("Invalid input redirect\n");
 					break;
 
-				case '<':
-					if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0)		
-						printf("Invalid input redirect\n");
-					break;
+			case '&':
+				inputInfo->background = 1;
+				break;
 
-				case '&':
-					inputInfo->background = 1;
-					break;
-
-				default:
-					if(token == NULL) break;
-						inputInfo->argumentVector[inputInfo->argumentCount] = token;
-					inputInfo->argumentCount++;
-					break;
+			default:
+				if(token == NULL) break;
+					inputInfo->argumentVector[inputInfo->argumentCount] = token;
+				inputInfo->argumentCount++;
+				break;
 			}
-		}
 		token = strtok(NULL, "\n\t\r  ");
 	}while(token != NULL); 
 }/* -----  end of function tokenizeInput  ----- */
