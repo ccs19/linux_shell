@@ -13,8 +13,6 @@
 
 #include "myshell.h"
 
-FILE* temp = NULL;
-
 
 
 /*
@@ -59,11 +57,6 @@ void shellBegin(){
 
 		//Testing execution of user input.
 		execInput(&inputInfo, inputString);
-
-		if(temp != NULL){
-			fclose(temp);
-			temp = NULL;
-		}
 
 		if(debugMode)
 			printParams(&inputInfo);
