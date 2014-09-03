@@ -96,11 +96,11 @@ void tokenizeInput(char* str, Param_t* inputInfo){
 				break;
 
 			default:
-				if(token == NULL) break;
-					inputInfo->argumentVector[inputInfo->argumentCount] = token;
+				inputInfo->argumentVector[inputInfo->argumentCount] = token;
 				inputInfo->argumentCount++;
 				break;
-			}
+		}
+		
 		token = strtok(NULL, "\n\t\r  ");
 	}while(token != NULL); 
 }/* -----  end of function tokenizeInput  ----- */
