@@ -82,11 +82,13 @@ int execInput(Param_t*, char*);
 /* Checks for valid input of user re-directs */
 int checkValidRedirect(Param_t* , char*, int);
 
-/* Adds user command to buffer */
-void addToBuffer(char*);
 
-/* Initialize buffer */
-void initBuffer();
+
+FILE *redirectFile(char* , int );
+
+
+void redirectCleanup(FILE*,FILE*);
+
 
 #endif	//MYSHELL_H
 

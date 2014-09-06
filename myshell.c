@@ -224,6 +224,8 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 
 
 
+
+
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: redirectFile
@@ -244,24 +246,16 @@ FILE *redirectFile(char* fileName, int option){
 	}
 
 	return f;
-
-//
-//	if(param->outputRedirect != NULL){
-//				outFile = freopen(param->outputRedirect, "w", stdout);
-//
-//				if(outFile == NULL)	//stream association failed
-//					perror("Output redirect failed");
-//			}
-//
-//			if(param->inputRedirect != NULL){
-//				inFile = freopen(param->inputRedirect, "r", stdin);
-//
-//				if(inFile == NULL)	//stream association failed
-//					perror("Input redirect failed");
-//			}
-}
+}/* -----  end of function redirectFile  ----- */
 
 
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: redirectCleanup
+ *  Description: closes file redirection streams if they exist.
+ * =====================================================================================
+ */
 void redirectCleanup(FILE *in, FILE *out){
 
 	//If either files exist, close them.
@@ -271,7 +265,7 @@ void redirectCleanup(FILE *in, FILE *out){
 	if(in != NULL)
 		fclose(in);
 
-}
+}/* -----  end of function redirectCleanup  ----- */
 
 
 
