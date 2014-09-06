@@ -158,7 +158,7 @@ void printParams(Param_t* param){
  */
 int execInput(Param_t* param, char *str){
 	pid_t child_pid, monitor;
-	int child_stat = 0;
+	int child_stat;
 	FILE* outFile = NULL; 
 	FILE* inFile = NULL; 
 
@@ -169,16 +169,24 @@ int execInput(Param_t* param, char *str){
 	}
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
-		if(param->outputRedirect != NULL)outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
-		if(param->inputRedirect != NULL) inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
+		if(param->outputRedirect != NULL)
+			outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
+		if(param->inputRedirect != NULL)
+			inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
+
+
+		if( param->background == 1) fclose(stdout); //If background process, don't output to terminal
+													//Not sure if there's a better way of doing this
+
 
 		execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
-		redirectCleanup(inFile, outFile);
+		//redirectCleanup(inFile, outFile);
 		perror("Invalid input");
 		exit(EXIT_FAILURE);
 	}
 
 	else{
+		return 1;
 		if(param->background == 0){
 			do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
 				monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
@@ -226,6 +234,8 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 
 
 
+
+
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: redirectFile
@@ -236,17 +246,21 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 FILE *redirectFile(char* fileName, int option){
 	FILE *f = NULL;
 
-	if(option == INPUT_REDIRECT)
+	if(option == INPUT_REDIRECT && fileName != NULL)
 		f = freopen(fileName, "r", stdin);
-	else f = freopen(fileName, "w", stdout);
+	else if (fileName != NULL) f = freopen(fileName, "w", stdout);
 
-	if(f == NULL){
+	if(f == NULL && fileName != NULL){
 		if(option == INPUT_REDIRECT) perror("File input redirect failed.");
 		else perror("File output redirect failed.");
 	}
 
 	return f;
 }/* -----  end of function redirectFile  ----- */
+
+
+
+
 
 
 
