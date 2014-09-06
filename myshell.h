@@ -27,13 +27,13 @@
 #define MAX_INPUT_CHARS	MAXARGS*10	//conservative assumption 10 chars per argument
 #define DIR_FILE_LEN	50			//we aren't allocating many Param_t structures, so we can be conservative with the name length
 #define EXIT_PARAM		"exit"
-#define TOKEN_STR		"<>&-"
-#define debug(str){				\
+#define BUFF_SIZE		10 //Number of commands to keep in history
+#define INPUT_REDIRECT	0
+#define OUTPUT_REDIRECT	1
+#define debug(str){						\
 			if(debugMode)				\
-				printf("%s", str);	\
+				printf("%s", str);		\
 		}
-#define BUFF_SIZE 10 //Number of commands to keep in history
-
 
 
 
@@ -73,7 +73,7 @@ void printParams(Param_t*);
 void tokenizeInput(char*, Param_t*);
 
 /* Initializes members of a Param_t structure - no dynamic memory allocation */
-void newParam_t(Param_t*);
+void initParam_t(Param_t*);
 
 /*Executes user input */
 int execInput(Param_t*, char*);

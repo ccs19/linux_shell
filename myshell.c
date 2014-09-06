@@ -88,8 +88,8 @@ void tokenizeInput(char* str, Param_t* inputInfo){
 
 			case '<':
 				if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0)		
-				printf("Invalid input redirect\n");
-					break;
+					printf("Invalid input redirect\n");
+				break;
 
 			case '&':
 				inputInfo->background = 1;
@@ -158,6 +158,7 @@ int execInput(Param_t* param, char *str){
 	pid_t child_pid, monitor;
 	int child_stat = 0;
 	FILE* outFile = NULL; 
+	FILE* inFile = NULL; 
 
 	child_pid = fork();		//returns new child PID in parent process and 0 for child process
 	if(child_pid < 0){		//fork failure
@@ -170,20 +171,30 @@ int execInput(Param_t* param, char *str){
 			outFile = freopen(param->outputRedirect, "w", stdout);
 
 			if(outFile == NULL)	//stream association failed
-				perror("Error");
+				perror("Output redirect failed");
 		}
 
-		execvp(param->argumentVector[0], param->argumentVector);
+		if(param->inputRedirect != NULL){
+			inFile = freopen(param->inputRedirect, "r", stdin);
+
+			if(inFile == NULL)	//stream association failed
+				perror("Input redirect failed");
+		}
+
+		execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
 		if(outFile != NULL)	//close only if we associated it to begin with, otherwise this is undefined behavior so the check is required
 			fclose(outFile);
+		
+		if(inFile != NULL)
+			fclose(inFile);
 
 		//Error thrown if invalid command.  Perror allows program executed to throw its own error, if applicable.
 		perror("Invalid input");
 		exit(EXIT_FAILURE);
 	}
 	else{
-		do{
-			monitor = wait(NULL);		//if not null, status information is assigned to the int passed in
+		do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
+			monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
 		}while(monitor != child_pid);	//wait() returns the pid of terminated child process
 	}
 
