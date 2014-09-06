@@ -22,12 +22,11 @@
  * =====================================================================================
  */
 int main(int argc, char** argv){
-	if(argc > 1){	
+	if(argc > 1)
 		if(strncmp(argv[1], "-Debug", sizeof("-Debug")-1) == 0){	//sizeof-1 to neglect null-char from const string and /n from stdin
 			printf("Entered debug mode.\n\n");
 			debugMode = true;
 		}
-	}
 
 	shellBegin();
 	//ensure child processes are closed here??
@@ -53,10 +52,8 @@ void shellBegin(){
 			break; 
 		}
 		initParam_t(&inputInfo);
-		tokenizeInput(inputString, &inputInfo);  
-
-		//Testing execution of user input.
-		execInput(&inputInfo, inputString);
+		if( tokenizeInput(inputString, &inputInfo) )  
+			execInput(&inputInfo, inputString);	//Testing execution of user input.
 
 		if(debugMode)
 			printParams(&inputInfo);
@@ -72,23 +69,27 @@ void shellBegin(){
  *  Description:
  * =====================================================================================
  */
-void tokenizeInput(char* str, Param_t* inputInfo){	
+int tokenizeInput(char* str, Param_t* inputInfo){	
 	char* token; 
 
 	token = strtok(str, "\n\t\r  ");
 	if(token == NULL)	//string was empty
-		return;
+		return 0;
 
 	do{
 		switch(*token){
 			case '>':
-				if(checkValidRedirect(inputInfo, token, OUTPUT_REDIRECT) == 0)		
+				if(checkValidRedirect(inputInfo, token, OUTPUT_REDIRECT) == 0){
 					printf("Invalid output redirect\nSyntax \" > filename \"\n");
+					return 0; 
+				}
 				break;
 
 			case '<':
-				if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0)		
+				if(checkValidRedirect(inputInfo, token, INPUT_REDIRECT) == 0){		
 					printf("Invalid input redirect\n");
+					return 0;
+				}
 				break;
 
 			case '&':
@@ -103,6 +104,7 @@ void tokenizeInput(char* str, Param_t* inputInfo){
 		
 		token = strtok(NULL, "\n\t\r  ");
 	}while(token != NULL); 
+	return 1; 
 }/* -----  end of function tokenizeInput  ----- */
 
 
@@ -215,13 +217,22 @@ int execInput(Param_t* param, char *str){
  * =====================================================================================
  */
 int checkValidRedirect(Param_t* param, char* token, int option){
-	while(1){
-		token++;
-		if(token == NULL) return 0;
-		if(option == INPUT_REDIRECT) param->inputRedirect = token;
-		else if(option == OUTPUT_REDIRECT) param->outputRedirect = token;
-		return 1;
-	}
+	if(option == INPUT_REDIRECT) 
+		if(param->inputRedirect == NULL)
+			param->inputRedirect = ++token;		//skip to next valid char after symbol
+		else{
+			printf("Invalid Input: Input Redirection may only be specified once.\n");
+			return 0; 
+		}
+
+	else if(option == OUTPUT_REDIRECT && param->outputRedirect == NULL) 
+			param->outputRedirect = ++token;	//skip to next valid char after symbol
+		else{	
+			printf("Invalid Input: Output Redirection may only be specified once.\n");
+			return 0; 
+		}
+
+	return 1;
 }/* -----  end of function checkValidRedirect  ----- */
 
 
