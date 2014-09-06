@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define ERR_STR			100
 #define MAXARGS 		32
 #define MAX_INPUT_CHARS	MAXARGS*10	//conservative assumption 10 chars per argument
 #define DIR_FILE_LEN	50			//we aren't allocating many Param_t structures, so we can be conservative with the name length
@@ -70,7 +71,7 @@ void shellBegin();
 void printParams(Param_t*); 
 
 /* Takes the input string, tokenizes it, and populates a Param_t structure accordingly */
-void tokenizeInput(char*, Param_t*);
+int tokenizeInput(char*, Param_t*);
 
 /* Initializes members of a Param_t structure - no dynamic memory allocation */
 void initParam_t(Param_t*);
