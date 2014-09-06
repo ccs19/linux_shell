@@ -169,35 +169,22 @@ int execInput(Param_t* param, char *str){
 	}
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
-		if(param->outputRedirect != NULL){
-			outFile = freopen(param->outputRedirect, "w", stdout);
-
-			if(outFile == NULL)	//stream association failed
-				perror("Output redirect failed");
-		}
-
-		if(param->inputRedirect != NULL){
-			inFile = freopen(param->inputRedirect, "r", stdin);
-
-			if(inFile == NULL)	//stream association failed
-				perror("Input redirect failed");
-		}
+		if(param->outputRedirect != NULL)outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
+		if(param->inputRedirect != NULL) inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
 
 		execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
-		if(outFile != NULL)	//close only if we associated it to begin with, otherwise this is undefined behavior so the check is required
-			fclose(outFile);
-		
-		if(inFile != NULL)
-			fclose(inFile);
-
-		//Error thrown if invalid command.  Perror allows program executed to throw its own error, if applicable.
+		redirectCleanup(inFile, outFile);
 		perror("Invalid input");
 		exit(EXIT_FAILURE);
 	}
+
 	else{
-		do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
-			monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
-		}while(monitor != child_pid);	//wait() returns the pid of terminated child process
+		if(param->background == 0){
+			do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
+				monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
+			}while(monitor != child_pid);	//wait() returns the pid of terminated child process
+		}
+
 	}
 
 	return child_stat; // Return not needed
@@ -237,14 +224,60 @@ int checkValidRedirect(Param_t* param, char* token, int option){
 
 
 
-/*Adds user command to buffer*/
-//void addToBuffer(char* c){
-//
-//	command_buffer[numCommands] = malloc(sizeof(char)*(strlen(c)));
-//	if(numCommands < BUFF_SIZE ) numCommands++;
-//
-//}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: redirectFile
+ *  Description: Returns file pointer for re-direction
+ * =====================================================================================
+ */
 
-void initBuffer(){
+FILE *redirectFile(char* fileName, int option){
+	FILE *f = NULL;
+
+	if(option == INPUT_REDIRECT)
+		f = freopen(fileName, "r", stdin);
+	else f = freopen(fileName, "w", stdout);
+
+	if(f == NULL){
+		if(option == INPUT_REDIRECT) perror("File input redirect failed.");
+		else perror("File output redirect failed.");
+	}
+
+	return f;
+
+//
+//	if(param->outputRedirect != NULL){
+//				outFile = freopen(param->outputRedirect, "w", stdout);
+//
+//				if(outFile == NULL)	//stream association failed
+//					perror("Output redirect failed");
+//			}
+//
+//			if(param->inputRedirect != NULL){
+//				inFile = freopen(param->inputRedirect, "r", stdin);
+//
+//				if(inFile == NULL)	//stream association failed
+//					perror("Input redirect failed");
+//			}
+}
+
+
+void redirectCleanup(FILE *in, FILE *out){
+
+	//If either files exist, close them.
+	if (out != NULL)
+		fclose(out);
+
+	if(in != NULL)
+		fclose(in);
 
 }
+
+
+
+
+
+
+
+
+
