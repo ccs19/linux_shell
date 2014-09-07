@@ -43,14 +43,25 @@ int main(int argc, char** argv){
 void shellBegin(){
 	char inputString[MAX_INPUT_CHARS];	//temp location to hold input string 
 	Param_t inputInfo; 
+	commHistory.toExecute = NULL;		//init global command history structure 
+	commHistory.comm_index = 0; 
+
 	
 	while(1){
-		printf("[myshell]$:  ");
-		fgets(inputString, MAX_INPUT_CHARS, stdin);							//this can't fail unless the user never passes paramters 
-		if( strncmp(inputString, EXIT_PARAM, sizeof(EXIT_PARAM)-1) == 0 ){	//sizeof-1 to neglect null-char from const string and /n from stdin
-			//ensure child processes are stopped before breaking
-			break; 
+		if(commHistory.toExecute != NULL){	//if we have specified previously we want to execute a previous command
+			strncpy(inputString, commHistory.toExecute, strlen(commHistory.toExecute)+1);	//+1 for null-char 
+			commHistory.toExecute = NULL;
+		}else{
+			printf("[myshell]$:  ");
+			fgets(inputString, MAX_INPUT_CHARS, stdin);							//this can't fail unless the user never passes paramters 
+			updateCommandHistory(inputString); 
+
+			if( strncmp(inputString, EXIT_PARAM, sizeof(EXIT_PARAM)-1) == 0 ){	//sizeof-1 to neglect \n from stdin
+				//ensure child processes are stopped before breaking
+				break; 
+			}
 		}
+
 		initParam_t(&inputInfo);
 		if( tokenizeInput(inputString, &inputInfo) )  
 			execInput(&inputInfo, inputString);	//Testing execution of user input.
@@ -95,6 +106,14 @@ int tokenizeInput(char* str, Param_t* inputInfo){
 			case '&':
 				inputInfo->background = 1;
 				break;
+
+			case '!':
+				token++;
+				if(*token == '!')					//means string was "!!"
+					commandHistory(LIST_COMMANDS);
+				else if(*token != '\0')				//not end of string, at least one more character
+					commandHistory(atoi(token));	//assume integer - error checking in function
+				break; 
 
 			default:
 				inputInfo->argumentVector[inputInfo->argumentCount] = token;
@@ -158,7 +177,7 @@ void printParams(Param_t* param){
  */
 int execInput(Param_t* param, char *str){
 	pid_t child_pid, monitor;
-	int child_stat;
+	int child_stat = 0;		//suppress warning during compiling, this has to be initialized 
 	FILE* outFile = NULL; 
 	FILE* inFile = NULL; 
 
@@ -180,13 +199,13 @@ int execInput(Param_t* param, char *str){
 
 
 		execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
-		//redirectCleanup(inFile, outFile);
+		redirectCleanup(inFile, outFile); //commented back in to remove warnings 
 		perror("Invalid input");
 		exit(EXIT_FAILURE);
 	}
 
 	else{
-		return 1;
+		//return 1;	??
 		if(param->background == 0){
 			do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
 				monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
@@ -211,7 +230,7 @@ int execInput(Param_t* param, char *str){
  *  		option = 1 for outputRedirect
  * =====================================================================================
  */
-int checkValidRedirect(Param_t* param, char* token, int option){
+int checkValidRedirect(Param_t* param, char* token, int option){	//need to change the name of this function - it does more than just "check"
 	if(option == INPUT_REDIRECT) 
 		if(param->inputRedirect == NULL)
 			param->inputRedirect = ++token;		//skip to next valid char after symbol
@@ -280,6 +299,40 @@ void redirectCleanup(FILE *in, FILE *out){
 		fclose(in);
 
 }/* -----  end of function redirectCleanup  ----- */
+
+
+
+
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: commandHistory
+ *  Description: Lists BUFF_SIZE number of previous commands
+ * =====================================================================================
+ */
+void commandHistory(int commandNum){
+	if(commandNum < 0)
+		for(int i = commHistory.comm_index; i > 0; i--)
+			printf("!%d: %s", i, commHistory.command[i]); 	//newline present from stdin 
+	else{
+		if( (commandNum == 0) || (commandNum > BUFF_SIZE) ){
+			printf("Error: Please specify command index for [1,%d]\n", BUFF_SIZE);
+			return;
+		}
+		commHistory.toExecute = commHistory.command[commandNum];
+	}
+}
+
+
+
+
+
+void updateCommandHistory(const char* str){
+	commHistory.comm_index = (commHistory.comm_index+1)%BUFF_SIZE; 
+	strncpy(commHistory.command[commHistory.comm_index], str, strlen(str)+1);	//copy command into history buffer, +1 to copy null-char! 
+}
+
 
 
 

@@ -23,21 +23,19 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define ERR_STR			100
-#define MAXARGS 		32
-#define MAX_INPUT_CHARS	MAXARGS*10	//conservative assumption 10 chars per argument
-#define DIR_FILE_LEN	50			//we aren't allocating many Param_t structures, so we can be conservative with the name length
-#define EXIT_PARAM		"exit"
-#define BUFF_SIZE		10 //Number of commands to keep in history
-#define INPUT_REDIRECT	0
-#define OUTPUT_REDIRECT	1
+#define ERR_STR				100
+#define MAXARGS 			32
+#define MAX_INPUT_CHARS		MAXARGS*10	//conservative assumption 10 chars per argument
+#define DIR_FILE_LEN		50			//we aren't allocating many Param_t structures, so we can be conservative with the name length
+#define EXIT_PARAM			"exit"
+#define BUFF_SIZE			10 //Number of commands to keep in history
+#define INPUT_REDIRECT		0
+#define OUTPUT_REDIRECT		1
+#define LIST_COMMANDS		-1
 #define debug(str){						\
 			if(debugMode)				\
 				printf("%s", str);		\
 		}
-
-
-
 
 /* For boolean clarity */
 typedef short bool;
@@ -59,10 +57,12 @@ typedef struct PARAM Param_t;
 
 
 /*Struct for command buffer*/
-typedef struct{
-	int comm_count;
-	char command[BUFF_SIZE];
+typedef struct{						//points to most recently entered command
+	int comm_index; 				//once buffer fills up comm_count would = BUFF_SIZE always, so index seems more appropriate
+	char* toExecute; 
+	char command[BUFF_SIZE][100];
 }Command_Buffer;
+Command_Buffer commHistory; 
 
 /* Entrance point to the main program */
 void shellBegin();
@@ -82,6 +82,9 @@ int execInput(Param_t*, char*);
 /* Checks for valid input of user re-directs */
 int checkValidRedirect(Param_t* , char*, int);
 
+void commandHistory(int commandNum); 
+
+void updateCommandHistory(const char* str);
 
 
 FILE *redirectFile(char* , int );
