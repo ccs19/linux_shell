@@ -13,6 +13,8 @@
 
 #include "myshell.h"
 
+int CHILDPIPE[2];
+int PARENTPIPE[2];
 
 
 /*
@@ -181,6 +183,9 @@ int execInput(Param_t* param, char *str){
 	FILE* outFile = NULL; 
 	FILE* inFile = NULL; 
 
+	if(param->background == 1)	pipe(CHILDPIPE);
+
+
 	child_pid = fork();		//returns new child PID in parent process and 0 for child process
 	if(child_pid < 0){		//fork failure
 		perror("Error");
@@ -188,20 +193,24 @@ int execInput(Param_t* param, char *str){
 	}
 
 	if(child_pid == 0){ //If child is created successfully, attempt to execute
-		if(param->outputRedirect != NULL)
-			outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
-		if(param->inputRedirect != NULL)
-			inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
+			if(param->outputRedirect != NULL)
+				outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
+//			else if(param->background == 1){
+//				dup2(STDOUT_FILENO, CHILDPIPE[1]);
+//			}
+
+			if(param->inputRedirect != NULL)
+				inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
+//			else if(param->background == 1){
+//				dup2(STDIN_FILENO, CHILDPIPE[0]);
+//			}
 
 
-		if( param->background == 1) fclose(stdout); //If background process, don't output to terminal
-													//Not sure if there's a better way of doing this
 
-
-		execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
-		redirectCleanup(inFile, outFile); //commented back in to remove warnings 
-		perror("Invalid input");
-		exit(EXIT_FAILURE);
+			execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
+			redirectCleanup(inFile, outFile); //commented back in to remove warnings
+			perror("Invalid input");
+			exit(EXIT_FAILURE);
 	}
 
 	else{
