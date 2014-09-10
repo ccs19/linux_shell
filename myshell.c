@@ -13,8 +13,6 @@
 
 #include "myshell.h"
 
-int CHILDPIPE[2];
-int PARENTPIPE[2];
 
 
 /*
@@ -31,15 +29,17 @@ int main(int argc, char** argv){
 		}
 
 	shellBegin();
-	//ensure child processes are closed here??
-}/* -----  end of function main  ----- */
+	waitForChildren();
+	exit(EXIT_SUCCESS);
 
+}/* -----  end of function main  ----- */
 
 
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: shellBegin
- *  Description:
+ *  Description: Starts the shell and continues in a loop until EXIT_PARAM is 
+ *					entered.
  * =====================================================================================
  */
 void shellBegin(){
@@ -47,30 +47,26 @@ void shellBegin(){
 	Param_t inputInfo; 
 	commHistory.toExecute = NULL;		//init global command history structure 
 	commHistory.comm_index = 0; 
-
-	
+	//Shell loop
 	while(1){
 		if(commHistory.toExecute != NULL){	//if we have specified previously we want to execute a previous command
 			strncpy(inputString, commHistory.toExecute, strlen(commHistory.toExecute)+1);	//+1 for null-char 
 			commHistory.toExecute = NULL;
 		}else{
 			printf("[myshell]$:  ");
-			fgets(inputString, MAX_INPUT_CHARS, stdin);							//this can't fail unless the user never passes paramters 
+			fgets(inputString, MAX_INPUT_CHARS, stdin);							//this can't fail unless the user never passes parameters 
 			updateCommandHistory(inputString); 
 
 			if( strncmp(inputString, EXIT_PARAM, sizeof(EXIT_PARAM)-1) == 0 ){	//sizeof-1 to neglect \n from stdin
-				//ensure child processes are stopped before breaking
 				break; 
 			}
 		}
-
 		initParam_t(&inputInfo);
 		if( tokenizeInput(inputString, &inputInfo) )  
-			execInput(&inputInfo, inputString);	//Testing execution of user input.
+			execInput(&inputInfo, inputString);	
 
 		if(debugMode)
 			printParams(&inputInfo);
-
 	}
 }/* -----  end of function shellBegin  ----- */
 
@@ -79,7 +75,9 @@ void shellBegin(){
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: tokenizeInput
- *  Description:
+ *  Description: Parses user input into strings, recognizing > and < for file 
+ *					re-direction, & for backgrounding flag, and  
+*					program launch parameters.
  * =====================================================================================
  */
 int tokenizeInput(char* str, Param_t* inputInfo){	
@@ -88,7 +86,6 @@ int tokenizeInput(char* str, Param_t* inputInfo){
 	token = strtok(str, "\n\t\r  ");
 	if(token == NULL)	//string was empty
 		return 0;
-
 	do{
 		switch(*token){
 			case '>':
@@ -134,7 +131,7 @@ int tokenizeInput(char* str, Param_t* inputInfo){
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: newParam_t
- *  Description:
+ *  Description: Initializes data structure for user input
  * =====================================================================================
  */
 void initParam_t(Param_t* newStruct){
@@ -142,8 +139,8 @@ void initParam_t(Param_t* newStruct){
 	newStruct->outputRedirect = NULL; 
 	newStruct->argumentCount = 0;
 	newStruct->background = 0;
-	for(int i = 0; i < MAXARGS; i++)			//optimization potential, set only argumentCount char*'s to NULL before setting to 0
-		newStruct->argumentVector[i] = NULL; 	//argument vector char* memory allocating is left for when we populate it this field
+	for(int i = 0; i < MAXARGS; i++)			
+		newStruct->argumentVector[i] = NULL; 	
 }/* -----  end of function initParam_t  ----- */
 
 
@@ -152,7 +149,7 @@ void initParam_t(Param_t* newStruct){
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: printParams
- *  Description:
+ *  Description: Prints data stored in a Param_t structure.
  * =====================================================================================
  */
 void printParams(Param_t* param){
@@ -174,57 +171,23 @@ void printParams(Param_t* param){
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  execInput
- *  Description: Executes user input
+ *  Description: Forks, then executes input based on child or parent.
  * =====================================================================================
  */
-int execInput(Param_t* param, char *str){
-	pid_t child_pid, monitor;
-	int child_stat = 0;		//suppress warning during compiling, this has to be initialized 
+void execInput(Param_t* param, char *str){
+	pid_t child_pid;
 	FILE* outFile = NULL; 
 	FILE* inFile = NULL; 
-
-	if(param->background == 1)	pipe(CHILDPIPE);
-
-
 	child_pid = fork();		//returns new child PID in parent process and 0 for child process
+	
 	if(child_pid < 0){		//fork failure
 		perror("Error");
 		exit(EXIT_FAILURE);
 	}
 
-	if(child_pid == 0){ //If child is created successfully, attempt to execute
-			if(param->outputRedirect != NULL)
-				outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
-//			else if(param->background == 1){
-//				dup2(STDOUT_FILENO, CHILDPIPE[1]);
-//			}
-
-			if(param->inputRedirect != NULL)
-				inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
-//			else if(param->background == 1){
-//				dup2(STDIN_FILENO, CHILDPIPE[0]);
-//			}
-
-
-
-			execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
-			redirectCleanup(inFile, outFile); //commented back in to remove warnings
-			perror("Invalid input");
-			exit(EXIT_FAILURE);
-	}
-
-	else{
-		//return 1;	??
-		if(param->background == 0){
-			do{								//We need to conitnue to call wait() in order to free child pids and retrieve exit-status info to prevent "zombie processes"
-				monitor = wait(NULL);		//if not null, status information is assigned to the int passed in (wait removes calling process from ReadyQueue)
-			}while(monitor != child_pid);	//wait() returns the pid of terminated child process
-		}
-
-	}
-
-	return child_stat; // Return not needed
-
+	if(child_pid == 0) execChild(param, inFile, outFile);
+	else parentWait(child_pid, param->background);
+	
 }/* -----  end of function execInput  ----- */
 
 
@@ -254,7 +217,6 @@ int checkValidRedirect(Param_t* param, char* token, int option){	//need to chang
 			printf("Invalid Input: Output Redirection may only be specified once.\n");
 			return 0; 
 		}
-
 	return 1;
 }/* -----  end of function checkValidRedirect  ----- */
 
@@ -282,7 +244,6 @@ FILE *redirectFile(char* fileName, int option){
 		if(option == INPUT_REDIRECT) perror("File input redirect failed.");
 		else perror("File output redirect failed.");
 	}
-
 	return f;
 }/* -----  end of function redirectFile  ----- */
 
@@ -334,9 +295,34 @@ void commandHistory(int commandNum){
 }
 
 
+void execChild(Param_t* param, FILE* inFile, FILE* outFile){
+			if(param->outputRedirect != NULL)
+				outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
+
+			if(param->inputRedirect != NULL)
+				inFile = redirectFile(param->inputRedirect, INPUT_REDIRECT);
+
+			execvp(param->argumentVector[0], param->argumentVector);	//replaces memory space with a new program (destroying duplicate created from its parent)
+			redirectCleanup(inFile, outFile); //commented back in to remove warnings
+			perror("Invalid input");
+			exit(EXIT_FAILURE);
+
+}
 
 
+void waitForChildren(){
+	pid_t no_zombie;
+	while(no_zombie != -1){
+		no_zombie = wait(NULL); //Wait returns -1 if no child process exists
+	}
+}
 
+void parentWait(pid_t child_pid, int background){
+	//Waits for specific child to terminate, rather than any child
+
+	if(background == 0) waitpid( child_pid, NULL, 0 );
+
+}
 void updateCommandHistory(const char* str){
 	commHistory.comm_index = (commHistory.comm_index+1)%BUFF_SIZE; 
 	strncpy(commHistory.command[commHistory.comm_index], str, strlen(str)+1);	//copy command into history buffer, +1 to copy null-char! 

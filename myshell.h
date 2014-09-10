@@ -76,8 +76,8 @@ int tokenizeInput(char*, Param_t*);
 /* Initializes members of a Param_t structure - no dynamic memory allocation */
 void initParam_t(Param_t*);
 
-/*Executes user input */
-int execInput(Param_t*, char*);
+/*Forks, then executes user input */
+void execInput(Param_t*, char*);
 
 /* Checks for valid input of user re-directs */
 int checkValidRedirect(Param_t* , char*, int);
@@ -86,12 +86,17 @@ void commandHistory(int commandNum);
 
 void updateCommandHistory(const char* str);
 
+void execChild(Param_t*, FILE*, FILE*);
 
 FILE *redirectFile(char* , int );
 
+void waitForChildren();
+
+void parentWait(pid_t, int);
 
 void redirectCleanup(FILE*,FILE*);
 
+void parentWait(pid_t, int);
 
 #endif	//MYSHELL_H
 
