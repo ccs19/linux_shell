@@ -18,7 +18,7 @@
 /*
  * ===  FUNCTION  ======================================================================
  *         Name: main
- *  Description:
+ *  Description: Checks for debug mode, then launches shell
  * =====================================================================================
  */
 int main(int argc, char** argv){
@@ -130,7 +130,7 @@ int tokenizeInput(char* str, Param_t* inputInfo){
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name: newParam_t
+ *         Name: initParam_t
  *  Description: Initializes data structure for user input
  * =====================================================================================
  */
@@ -292,9 +292,14 @@ void commandHistory(int commandNum){
 		}
 		commHistory.toExecute = commHistory.command[commandNum];
 	}
-}
+}/* -----  end of function commandHistory  ----- */
 
-
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: execChild
+ *  Description: Attempts to execute child code, calling execvp. If fails, exit child.
+ * =====================================================================================
+ */
 void execChild(Param_t* param, FILE* inFile, FILE* outFile){
 			if(param->outputRedirect != NULL)
 				outFile = redirectFile(param->outputRedirect, OUTPUT_REDIRECT);
@@ -307,26 +312,45 @@ void execChild(Param_t* param, FILE* inFile, FILE* outFile){
 			perror("Invalid input");
 			exit(EXIT_FAILURE);
 
-}
+}/* -----  end of function execChild  ----- */
 
-
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: waitForChildren
+ *  Description: Attempts to execute child code, calling execvp. If fails, exit child.
+ * =====================================================================================
+ */
 void waitForChildren(){
 	pid_t no_zombie;
 	while(no_zombie != -1){
 		no_zombie = wait(NULL); //Wait returns -1 if no child process exists
 	}
-}
+}/* -----  end of function waitForChildren  ----- */
 
+
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: parentWait
+ *  Description: Waits for specific child to terminate based on child_pid. 
+ *					If background requested, skips wait.
+ * =====================================================================================
+ */
 void parentWait(pid_t child_pid, int background){
-	//Waits for specific child to terminate, rather than any child
-
 	if(background == 0) waitpid( child_pid, NULL, 0 );
+}/* -----  end of function parentWait  ----- */
 
-}
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name: updateCommandHistory
+ *  Description: 
+ * =====================================================================================
+ */
 void updateCommandHistory(const char* str){
 	commHistory.comm_index = (commHistory.comm_index+1)%BUFF_SIZE; 
 	strncpy(commHistory.command[commHistory.comm_index], str, strlen(str)+1);	//copy command into history buffer, +1 to copy null-char! 
-}
+}/* -----  end of function updateCommandHistory  ----- */
 
 
 
