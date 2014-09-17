@@ -108,7 +108,7 @@ void execInput(Param_t* param, char *str){
 	child_pid = fork();		//returns new child PID in parent process and 0 for child process
 	
 	if(child_pid < 0){		//fork failure
-		perror("Error");
+		perror("Process fork error");
 		exit(EXIT_FAILURE);
 	}
 
@@ -128,12 +128,14 @@ FILE *redirectFile(char* fileName, int option){
 	FILE *f = NULL;
 
 	if(option == INPUT_REDIRECT && fileName != NULL)
-		f = freopen(fileName, "r", stdin);
-	else if (fileName != NULL) f = freopen(fileName, "w", stdout);
+		f = freopen(fileName, "r", stdin);							
+	
+	else if (fileName != NULL)
+			f = freopen(fileName, "w", stdout);
 
-	if(f == NULL && fileName != NULL){
-		if(option == INPUT_REDIRECT) perror("File input redirect failed.");
-		else perror("File output redirect failed.");
+	if(f == NULL){			//if(f == NULL && fileName != NULL) -- fileName == NULL will never happen, checkValidRedirect checks this already 
+		if(option == INPUT_REDIRECT) perror("File input redirect failed");
+		else perror("File output redirect failed");
 	}
 	return f;
 }/* -----  end of function redirectFile  ----- */
@@ -197,10 +199,11 @@ void waitForChildren(){
  * =====================================================================================
  */
 void parentWait(pid_t child_pid, int background){
+	static int childCount = 0; 
 	if(background == 0)
 		waitpid( child_pid, NULL, 0 );
 	else
-		printf("Child PID: %d\n", child_pid);
+		printf("[%d]: %d\n", ++childCount, child_pid);
 }/* -----  end of function parentWait  ----- */
 
 
