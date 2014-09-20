@@ -8,9 +8,9 @@
  *	Description: parse.c implementation file
  * =====================================================================================
  */
-#ifndef	PARSE_H
+//#ifndef	PARSE_H
 	#include "parse.h"
-#endif
+//#endif
 
  /*
  * ===  FUNCTION  ======================================================================

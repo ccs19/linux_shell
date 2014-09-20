@@ -66,11 +66,12 @@ void shellBegin(){
  * =====================================================================================
  */
 void initParam_t(Param_t* newStruct){
+	int i;
 	newStruct->inputRedirect = NULL;			
 	newStruct->outputRedirect = NULL; 
 	newStruct->argumentCount = 0;
 	newStruct->background = 0;
-	for(int i = 0; i < MAXARGS; i++)			
+	for(i = 0; i < MAXARGS; i++)
 		newStruct->argumentVector[i] = NULL; 	
 }/* -----  end of function initParam_t  ----- */
 

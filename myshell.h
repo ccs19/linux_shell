@@ -11,9 +11,9 @@
 #ifndef	MYSHELL_H
 #define MYSHELL_H
 
-#ifndef	PARSE_H
-	#include "parse.h"
-#endif
+
+#include "parse.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-//#define ERR_STR				100		//this is not used
+
 #define MAX_INPUT_CHARS		MAXARGS*10	//conservative assumption 10 chars per argument
 #define DIR_FILE_LEN		50			//we aren't allocating many Param_t structures, so we can be conservative with the name length
 #define EXIT_PARAM			"exit"
@@ -50,17 +50,20 @@ void initParam_t(Param_t*);
 /*Forks, then executes user input */
 void execInput(Param_t*, char*);
 
-
+/*Attempts to execute child code*/
 void execChild(Param_t*, FILE*, FILE*);
 
+/*Returns file stream for redirection*/
 FILE *redirectFile(char* , int );
 
+/*Waits for all children to die*/
 void waitForChildren();
 
+/*Waits for a specific child to die*/
 void parentWait(pid_t, int);
 
+/*Closes open file streams if exec fails*/
 void redirectCleanup(FILE*,FILE*);
 
-void parentWait(pid_t, int);
 
 #endif	//MYSHELL_H

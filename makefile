@@ -1,4 +1,4 @@
-CC = c99
+CC = gcc
 CFLAGS = -g -Wall
 OBJECTS = myshell.c parse.c
 TODELETE = myshell.o parse.o

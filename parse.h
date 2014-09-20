@@ -25,7 +25,7 @@ struct PARAM{
 	char* outputRedirect; 			//output to file name or NULL
 	int background;					//will work in the background or not
 	int argumentCount;				//number of tokens in argumentVector
-	char* argumentVector[MAXARGS];	///array of 
+	char* argumentVector[MAXARGS];	///array of arguments
 };
 typedef struct PARAM Param_t; 
 
